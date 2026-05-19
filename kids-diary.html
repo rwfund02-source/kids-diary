@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="우리 아이 일기">
+<title>우리 아이 일과 일기</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f7f7f5; --surface: #ffffff;
+  --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.15);
+  --text: #1a1a1a; --text-muted: #666; --text-hint: #aaa;
+  --accent: #1a1a1a; --accent-fg: #ffffff;
+  --filled-bg: #e8f4fd; --filled-border: #b3d9f5;
+  --today-bg: #fff8e6; --today-border: #f0c040;
+  --weekend: #c44;
+  --radius: 12px; --radius-sm: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414; --surface: #1e1e1e;
+    --border: rgba(255,255,255,0.08); --border-md: rgba(255,255,255,0.15);
+    --text: #f0f0f0; --text-muted: #999; --text-hint: #555;
+    --accent: #f0f0f0; --accent-fg: #141414;
+    --filled-bg: #0d2233; --filled-border: #1e4a6e;
+    --today-bg: #2a2410; --today-border: #b8901e;
+    --weekend: #e88;
+  }
+}
+body { background: var(--bg); color: var(--text); font-family: -apple-system,'Helvetica Neue',sans-serif; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
+.app { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
+
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.header-right { display: flex; align-items: center; gap: 6px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-hint); transition: background 0.3s; }
+.status-dot.online { background: #2e7d52; }
+.status-text { font-size: 12px; color: var(--text-muted); }
+
+/* 아이 선택 바 */
+.kid-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.kid-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-md); background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer; transition: all 0.15s; }
+.kid-btn.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.kid-add-btn { padding: 6px 10px; border-radius: 20px; border: 1px dashed var(--border-md); background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+
+/* 뷰 전환 */
+.view-tabs { display: flex; gap: 4px; background: var(--surface); border-radius: var(--radius-sm); padding: 3px; border: 1px solid var(--border); margin-bottom: 16px; }
+.view-tab { flex: 1; padding: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+.view-tab.active { background: var(--accent); color: var(--accent-fg); }
+
+/* 월간 달력 */
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.month-nav h2 { font-size: 18px; font-weight: 600; }
+.nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-md); background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; }
+
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--surface); padding: 8px; border-radius: var(--radius); border: 1px solid var(--border); }
+.cal-head { text-align: center; font-size: 12px; color: var(--text-muted); padding: 6px 0; font-weight: 500; }
+.cal-head.sun, .cal-head.sat { color: var(--weekend); }
+.cal-cell { aspect-ratio: 1; padding: 6px 4px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-size: 13px; transition: all 0.15s; min-height: 48px; }
+.cal-cell:hover { background: var(--bg); }
+.cal-cell.other-month { color: var(--text-hint); opacity: 0.4; }
+.cal-cell.today { background: var(--today-bg); border-color: var(--today-border); font-weight: 600; }
+.cal-cell.filled { background: var(--filled-bg); border-color: var(--filled-border); }
+.cal-cell.today.filled { background: var(--today-bg); border-color: var(--today-border); }
+.cal-cell .day-num { font-size: 14px; }
+.cal-cell .dot-row { display: flex; gap: 2px; margin-top: 4px; }
+.cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); opacity: 0.6; }
+.cal-cell.sun .day-num { color: var(--weekend); }
+.cal-cell.sat .day-num { color: var(--weekend); }
+
+/* 일간 뷰 */
+.day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.day-title { font-size: 18px; font-weight: 600; }
+.day-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.task-list { display: flex; flex-direction: column; gap: 10px; }
+.task-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; transition: all 0.15s; }
+.task-card.filled { background: var(--filled-bg); border-color: var(--filled-border); }
+.task-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+.task-name { font-size: 15px; font-weight: 600; }
+.task-actions { display: flex; gap: 4px; }
+.icon-btn { width: 26px; height: 26px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: var(--bg); color: var(--text); }
+.task-textarea { width: 100%; min-height: 60px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; resize: vertical; }
+.task-textarea:focus { outline: none; border-color: var(--accent); }
+.task-saved-indicator { font-size: 11px; color: var(--text-hint); margin-top: 4px; text-align: right; height: 14px; }
+
+/* 작업 목록 관리 */
+.tasks-manage { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.tasks-manage h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-muted); }
+.task-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.task-input-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-md); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; }
+.task-input-row button { padding: 8px 14px; border: none; background: var(--accent); color: var(--accent-fg); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; }
+.task-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.task-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; }
+.task-chip .remove { cursor: pointer; color: var(--text-muted); font-size: 14px; }
+.task-chip .remove:hover { color: var(--weekend); }
+.empty-hint { color: var(--text-hint); font-size: 13px; text-align: center; padding: 20px; }
+
+.toggle-manage { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; padding: 6px; margin-bottom: 8px; }
+.toggle-manage:hover { color: var(--text); }
+
+/* 아이 편집 메뉴 */
+.kid-edit-btn { padding: 6px 10px; border-radius: 20px; border: 1px solid var(--border-md); background: var(--surface); color: var(--text-muted); font-size: 13px; cursor: pointer; }
+.kid-edit-btn:hover { color: var(--text); }
+.kid-btn { position: relative; }
+.kid-btn.edit-mode { padding-right: 32px; }
+.kid-btn-actions { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: none; gap: 2px; }
+.kid-btn.edit-mode .kid-btn-actions { display: flex; }
+.kid-btn-action { width: 18px; height: 18px; border: none; background: rgba(255,255,255,0.2); color: inherit; border-radius: 50%; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; padding: 0; }
+.kid-btn-action:hover { background: rgba(255,255,255,0.4); }
+.kid-btn:not(.active) .kid-btn-action { background: var(--bg); }
+.kid-btn:not(.active) .kid-btn-action:hover { background: var(--border-md); }
+
+/* 월간 셀 툴팁 */
+.cal-cell { position: relative; }
+.cell-tooltip { 
+  position: absolute; 
+  bottom: calc(100% + 6px); 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: var(--text); 
+  color: var(--bg); 
+  padding: 10px 12px; 
+  border-radius: var(--radius-sm); 
+  font-size: 12px; 
+  white-space: normal; 
+  width: 220px; 
+  max-width: 80vw;
+  text-align: left; 
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2); 
+  z-index: 100; 
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-weight: normal;
+}
+.cell-tooltip.show { opacity: 1; }
+.cell-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--text);
+}
+.cell-tooltip .tt-date { font-weight: 600; margin-bottom: 6px; font-size: 11px; opacity: 0.7; }
+.cell-tooltip .tt-row { margin-bottom: 4px; line-height: 1.4; }
+.cell-tooltip .tt-row:last-child { margin-bottom: 0; }
+.cell-tooltip .tt-task { font-weight: 600; }
+.cell-tooltip .tt-memo { opacity: 0.85; }
+/* 오른쪽/왼쪽 끝 셀에서는 위치 조정 */
+.cal-cell:nth-child(7n+1) .cell-tooltip { left: 0; transform: none; }
+.cal-cell:nth-child(7n+1) .cell-tooltip::after { left: 20px; transform: none; }
+.cal-cell:nth-child(7n) .cell-tooltip { left: auto; right: 0; transform: none; }
+.cal-cell:nth-child(7n) .cell-tooltip::after { left: auto; right: 20px; transform: none; }
+
+/* 모바일에선 툴팁 숨김 (탭하면 일간 뷰로 가니까) */
+@media (hover: none) {
+  .cell-tooltip { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>📔 우리 아이 일기</h1>
+    <div class="header-right">
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-text" id="status-text">연결 중...</span>
+    </div>
+  </div>
+
+  <!-- 아이 선택 -->
+  <div class="kid-bar" id="kid-bar"></div>
+
+  <!-- 뷰 전환 -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-month" onclick="switchView('month')">📅 월간</button>
+    <button class="view-tab" id="tab-day" onclick="switchView('day')">📝 오늘</button>
+  </div>
+
+  <!-- 월간 뷰 -->
+  <div id="month-view">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <h2 id="month-title"></h2>
+      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <!-- 일간 뷰 -->
+  <div id="day-view" style="display:none;">
+    <div class="day-header">
+      <div>
+        <div class="day-title" id="day-title"></div>
+        <div class="day-sub" id="day-sub"></div>
+      </div>
+      <div>
+        <button class="nav-btn" onclick="changeDay(-1)">‹</button>
+        <button class="nav-btn" onclick="changeDay(1)">›</button>
+      </div>
+    </div>
+
+    <button class="toggle-manage" onclick="toggleManage()" id="toggle-manage-btn">⚙️ 매일 할 일 관리</button>
+
+    <div class="tasks-manage" id="tasks-manage" style="display:none;">
+      <h3>매일 반복하는 일 목록</h3>
+      <div class="task-input-row">
+        <input type="text" id="new-task-input" placeholder="예: 양치, 숙제, 책읽기..." onkeydown="if(event.key==='Enter')addTask()">
+        <button onclick="addTask()">추가</button>
+      </div>
+      <div class="task-chips" id="task-chips"></div>
+    </div>
+
+    <div class="task-list" id="task-list"></div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ===== Firebase 설정 (기존 my-checklist 프로젝트 재사용) =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDMg-MOtRaCGjxUV_D5HsViC1-QIz0cbfc",
+  authDomain: "my-checklist-1d462.firebaseapp.com",
+  projectId: "my-checklist-1d462",
+  storageBucket: "my-checklist-1d462.firebasestorage.app",
+  messagingSenderId: "317489669655",
+  appId: "1:317489669655:web:13613cec58ffe3f0b19e52"
+};
+firebase.initializeApp(firebaseConfig);
+// 별도 데이터베이스 'kids-diary' 사용 (기존 (default) 데이터베이스와 분리)
+const db = firebase.app().firestore('kids-diary');
+
+// ===== 상태 =====
+let kids = ['첫째', '둘째'];       // 아이 목록
+let currentKid = '첫째';            // 현재 선택된 아이
+let tasks = ['양치', '숙제', '책읽기']; // 매일 할 일 목록
+let entries = {};                   // { 'YYYY-MM-DD': { taskName: 'memo' } }
+let currentView = 'month';
+let currentMonth = new Date();      // 보고 있는 월
+let currentDay = new Date();        // 보고 있는 일
+let unsubscribe = null;
+let saveTimers = {};                // task별 디바운스 타이머
+let kidEditMode = false;            // 아이 편집 모드
+
+// ===== Firestore 문서 경로 =====
+// 컬렉션: kids-diary
+//   /kids-diary/_meta  → { kids: [...] }
+//   /kids-diary/{kidName}  → { tasks: [...], entries: { 'YYYY-MM-DD': {task: memo} } }
+const META_DOC = 'kids-diary';
+const META_KEY = '_meta';
+
+// ===== 유틸 =====
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function isSameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+// ===== 상태 표시 =====
+function setStatus(online) {
+  document.getElementById('status-dot').className = 'status-dot' + (online ? ' online' : '');
+  document.getElementById('status-text').textContent = online ? '동기화됨' : '오프라인';
+}
+
+// ===== 아이 관리 =====
+function renderKidBar() {
+  const bar = document.getElementById('kid-bar');
+  bar.innerHTML = kids.map(k => {
+    const safe = escapeHtml(k);
+    const editMode = kidEditMode ? 'edit-mode' : '';
+    const active = k===currentKid ? 'active' : '';
+    const actions = kidEditMode ? `
+      <span class="kid-btn-actions">
+        <button class="kid-btn-action" onclick="event.stopPropagation();renameKid('${safe}')" title="이름 수정">✎</button>
+        <button class="kid-btn-action" onclick="event.stopPropagation();deleteKid('${safe}')" title="삭제">×</button>
+      </span>
+    ` : '';
+    return `<button class="kid-btn ${active} ${editMode}" onclick="selectKid('${safe}')">${safe}${actions}</button>`;
+  }).join('') 
+    + `<button class="kid-add-btn" onclick="addKid()">+ 아이 추가</button>`
+    + `<button class="kid-edit-btn" onclick="toggleKidEdit()">${kidEditMode ? '완료' : '✎ 수정'}</button>`;
+}
+
+function toggleKidEdit() {
+  kidEditMode = !kidEditMode;
+  renderKidBar();
+}
+
+function selectKid(name) {
+  if (kidEditMode) return; // 편집 모드에선 선택 비활성화 (오작동 방지)
+  if (currentKid === name) return;
+  currentKid = name;
+  renderKidBar();
+  subscribeKid();
+}
+
+function addKid() {
+  const name = prompt('아이 이름을 입력하세요:');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (kids.includes(trimmed)) { alert('이미 있는 이름입니다.'); return; }
+  kids.push(trimmed);
+  saveMeta();
+  currentKid = trimmed;
+  renderKidBar();
+  subscribeKid();
+}
+
+async function renameKid(oldName) {
+  const newName = prompt(`"${oldName}"의 새 이름을 입력하세요:`, oldName);
+  if (!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  if (trimmed === oldName) return;
+  if (kids.includes(trimmed)) { alert('이미 있는 이름입니다.'); return; }
+
+  try {
+    // 1) 기존 문서 읽기
+    const oldDoc = await db.collection(META_DOC).doc(oldName).get();
+    const data = oldDoc.exists ? oldDoc.data() : { tasks: [], entries: {} };
+
+    // 2) 새 이름으로 문서 생성
+    await db.collection(META_DOC).doc(trimmed).set(data);
+
+    // 3) 기존 문서 삭제
+    if (oldDoc.exists) {
+      await db.collection(META_DOC).doc(oldName).delete();
+    }
+
+    // 4) kids 배열 업데이트
+    const idx = kids.indexOf(oldName);
+    if (idx >= 0) kids[idx] = trimmed;
+    if (currentKid === oldName) currentKid = trimmed;
+    await saveMeta();
+
+    renderKidBar();
+    subscribeKid();
+  } catch (e) {
+    console.error(e);
+    alert('이름 변경 중 오류가 발생했습니다: ' + e.message);
+  }
+}
+
+async function deleteKid(name) {
+  if (kids.length <= 1) {
+    alert('최소 한 명은 있어야 합니다.');
+    return;
+  }
+  if (!confirm(`"${name}"을(를) 정말 삭제하시겠습니까?\n모든 일기 기록이 함께 삭제됩니다. 되돌릴 수 없습니다.`)) return;
+  if (!confirm(`마지막 확인: "${name}"의 모든 기록을 영구 삭제합니다. 진행할까요?`)) return;
+
+  try {
+    // 1) 문서 삭제
+    await db.collection(META_DOC).doc(name).delete();
+
+    // 2) kids 배열에서 제거
+    kids = kids.filter(k => k !== name);
+
+    // 3) 현재 선택된 아이가 삭제된 경우 첫 번째로 변경
+    if (currentKid === name) currentKid = kids[0];
+    await saveMeta();
+
+    renderKidBar();
+    subscribeKid();
+  } catch (e) {
+    console.error(e);
+    alert('삭제 중 오류가 발생했습니다: ' + e.message);
+  }
+}
+
+async function saveMeta() {
+  try {
+    await db.collection(META_DOC).doc(META_KEY).set({ kids });
+  } catch (e) { console.error(e); }
+}
+
+// ===== 작업 목록 관리 =====
+function renderTaskChips() {
+  const wrap = document.getElementById('task-chips');
+  if (tasks.length === 0) {
+    wrap.innerHTML = '<div class="empty-hint">매일 할 일을 추가해보세요</div>';
+    return;
+  }
+  wrap.innerHTML = tasks.map(t => `
+    <span class="task-chip">${escapeHtml(t)}<span class="remove" onclick="removeTask('${escapeHtml(t)}')">×</span></span>
+  `).join('');
+}
+
+function addTask() {
+  const inp = document.getElementById('new-task-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (tasks.includes(name)) { alert('이미 있는 항목입니다.'); return; }
+  tasks.push(name);
+  inp.value = '';
+  saveKidData();
+  renderTaskChips();
+  renderDayView();
+}
+
+function removeTask(name) {
+  if (!confirm(`"${name}" 항목을 삭제할까요? (기존 기록은 유지됩니다)`)) return;
+  tasks = tasks.filter(t => t !== name);
+  saveKidData();
+  renderTaskChips();
+  renderDayView();
+}
+
+function toggleManage() {
+  const m = document.getElementById('tasks-manage');
+  const btn = document.getElementById('toggle-manage-btn');
+  if (m.style.display === 'none') {
+    m.style.display = 'block';
+    btn.textContent = '⚙️ 닫기';
+  } else {
+    m.style.display = 'none';
+    btn.textContent = '⚙️ 매일 할 일 관리';
+  }
+}
+
+// ===== Firestore 동기화 =====
+async function subscribeKid() {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+
+  // 1) 메타 (아이 목록) 동기화
+  db.collection(META_DOC).doc(META_KEY).onSnapshot(snap => {
+    if (snap.exists) {
+      const data = snap.data();
+      if (Array.isArray(data.kids) && data.kids.length > 0) {
+        kids = data.kids;
+        if (!kids.includes(currentKid)) currentKid = kids[0];
+        renderKidBar();
+      }
+    } else {
+      saveMeta(); // 최초 생성
+    }
+  });
+
+  // 2) 현재 아이 데이터 동기화
+  unsubscribe = db.collection(META_DOC).doc(currentKid).onSnapshot(snap => {
+    setStatus(true);
+    if (snap.exists) {
+      const data = snap.data();
+      tasks = Array.isArray(data.tasks) ? data.tasks : [];
+      entries = data.entries || {};
+    } else {
+      tasks = [];
+      entries = {};
+      saveKidData(); // 최초 생성
+    }
+    renderTaskChips();
+    renderCalendar();
+    renderDayView();
+  }, err => {
+    console.error(err);
+    setStatus(false);
+  });
+}
+
+async function saveKidData() {
+  try {
+    await db.collection(META_DOC).doc(currentKid).set({ tasks, entries }, { merge: true });
+    setStatus(true);
+  } catch (e) {
+    console.error(e);
+    setStatus(false);
+  }
+}
+
+// 메모 변경 시 디바운스 저장 (1초 후)
+function onMemoChange(taskName, value, dateKey) {
+  if (!entries[dateKey]) entries[dateKey] = {};
+  if (value.trim() === '') {
+    delete entries[dateKey][taskName];
+    if (Object.keys(entries[dateKey]).length === 0) delete entries[dateKey];
+  } else {
+    entries[dateKey][taskName] = value;
+  }
+  const indicator = document.getElementById(`saved-${escapeForId(taskName)}`);
+  if (indicator) indicator.textContent = '입력 중...';
+
+  const timerKey = `${dateKey}__${taskName}`;
+  if (saveTimers[timerKey]) clearTimeout(saveTimers[timerKey]);
+  saveTimers[timerKey] = setTimeout(async () => {
+    await saveKidData();
+    if (indicator) {
+      indicator.textContent = '✓ 저장됨';
+      setTimeout(() => { if (indicator) indicator.textContent = ''; }, 1500);
+    }
+  }, 700);
+}
+
+function escapeForId(s) { return s.replace(/[^a-zA-Z0-9가-힣]/g, '_'); }
+
+// ===== 뷰 전환 =====
+function switchView(v) {
+  currentView = v;
+  document.getElementById('tab-month').classList.toggle('active', v==='month');
+  document.getElementById('tab-day').classList.toggle('active', v==='day');
+  document.getElementById('month-view').style.display = v==='month' ? 'block' : 'none';
+  document.getElementById('day-view').style.display = v==='day' ? 'block' : 'none';
+  if (v==='month') renderCalendar();
+  else renderDayView();
+}
+
+// ===== 월간 달력 =====
+function changeMonth(delta) {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+delta, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const y = currentMonth.getFullYear();
+  const m = currentMonth.getMonth();
+  document.getElementById('month-title').textContent = `${y}년 ${m+1}월`;
+
+  const firstDay = new Date(y, m, 1);
+  const startDow = firstDay.getDay();
+  const lastDate = new Date(y, m+1, 0).getDate();
+  const prevLastDate = new Date(y, m, 0).getDate();
+
+  const today = new Date();
+  const cal = document.getElementById('calendar');
+  const headDows = ['일','월','화','수','목','금','토'];
+  let html = headDows.map((d,i) => {
+    const cls = i===0 ? ' sun' : (i===6 ? ' sat' : '');
+    return `<div class="cal-head${cls}">${d}</div>`;
+  }).join('');
+
+  // 이전 달 채우기
+  for (let i = startDow-1; i >= 0; i--) {
+    html += `<div class="cal-cell other-month"><span class="day-num">${prevLastDate-i}</span></div>`;
+  }
+  // 이번 달
+  for (let d = 1; d <= lastDate; d++) {
+    const date = new Date(y, m, d);
+    const key = fmtDate(date);
+    const dow = date.getDay();
+    const entry = entries[key];
+    const count = entry ? Object.keys(entry).length : 0;
+    const isToday = isSameDay(date, today);
+    const classes = ['cal-cell'];
+    if (dow===0) classes.push('sun');
+    if (dow===6) classes.push('sat');
+    if (isToday) classes.push('today');
+    if (count > 0) classes.push('filled');
+    const dots = count > 0 ? `<div class="dot-row">${'<span class="dot"></span>'.repeat(Math.min(count, 5))}</div>` : '';
+
+    // 툴팁 생성 (기록이 있을 때만)
+    let tooltip = '';
+    if (count > 0) {
+      const dateLabel = date.toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' });
+      const rows = Object.entries(entry).map(([task, memo]) => {
+        const shortMemo = memo.length > 50 ? memo.slice(0, 50) + '…' : memo;
+        return `<div class="tt-row"><span class="tt-task">${escapeHtml(task)}</span>: <span class="tt-memo">${escapeHtml(shortMemo)}</span></div>`;
+      }).join('');
+      tooltip = `<div class="cell-tooltip"><div class="tt-date">${escapeHtml(dateLabel)}</div>${rows}</div>`;
+    }
+
+    html += `<div class="${classes.join(' ')}" 
+      onclick="goToDay(${y},${m},${d})"
+      onmouseenter="showTooltip(this)"
+      onmouseleave="hideTooltip(this)">
+      <span class="day-num">${d}</span>${dots}${tooltip}
+    </div>`;
+  }
+  // 다음 달 채우기 (7의 배수까지)
+  const total = startDow + lastDate;
+  const remain = (7 - (total % 7)) % 7;
+  for (let i = 1; i <= remain; i++) {
+    html += `<div class="cal-cell other-month"><span class="day-num">${i}</span></div>`;
+  }
+  cal.innerHTML = html;
+}
+
+function goToDay(y, m, d) {
+  currentDay = new Date(y, m, d);
+  switchView('day');
+}
+
+function showTooltip(cell) {
+  const tip = cell.querySelector('.cell-tooltip');
+  if (tip) {
+    // 다음 프레임에 show 클래스 추가 (트랜지션 동작)
+    requestAnimationFrame(() => tip.classList.add('show'));
+  }
+}
+
+function hideTooltip(cell) {
+  const tip = cell.querySelector('.cell-tooltip');
+  if (tip) tip.classList.remove('show');
+}
+
+// ===== 일간 뷰 =====
+function changeDay(delta) {
+  currentDay = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate()+delta);
+  renderDayView();
+}
+
+function renderDayView() {
+  if (currentView !== 'day') return;
+  const d = currentDay;
+  const dateStr = d.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+  const today = new Date();
+  let sub = '';
+  if (isSameDay(d, today)) sub = '오늘';
+  else {
+    const diffDays = Math.round((d - new Date(today.getFullYear(),today.getMonth(),today.getDate())) / 86400000);
+    if (diffDays === -1) sub = '어제';
+    else if (diffDays === 1) sub = '내일';
+    else if (diffDays < 0) sub = `${-diffDays}일 전`;
+    else sub = `${diffDays}일 후`;
+  }
+  document.getElementById('day-title').textContent = dateStr;
+  document.getElementById('day-sub').textContent = sub;
+
+  const key = fmtDate(d);
+  const entry = entries[key] || {};
+  const listEl = document.getElementById('task-list');
+
+  if (tasks.length === 0) {
+    listEl.innerHTML = '<div class="empty-hint">⚙️ 버튼을 눌러 매일 할 일을 추가해주세요</div>';
+    return;
+  }
+
+  listEl.innerHTML = tasks.map(t => {
+    const memo = entry[t] || '';
+    const tid = escapeForId(t);
+    const filled = memo.trim() ? 'filled' : '';
+    return `
+      <div class="task-card ${filled}" id="card-${tid}">
+        <div class="task-header">
+          <div class="task-name">${escapeHtml(t)}</div>
+        </div>
+        <textarea class="task-textarea"
+                  id="memo-${tid}"
+                  placeholder="오늘은 어떻게 했나요?"
+                  oninput="onMemoInput('${escapeHtml(t)}', this.value, '${key}')">${escapeHtml(memo)}</textarea>
+        <div class="task-saved-indicator" id="saved-${tid}"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function onMemoInput(taskName, value, dateKey) {
+  const tid = escapeForId(taskName);
+  const card = document.getElementById('card-'+tid);
+  if (card) {
+    if (value.trim()) card.classList.add('filled');
+    else card.classList.remove('filled');
+  }
+  onMemoChange(taskName, value, dateKey);
+}
+
+// ===== 초기화 =====
+setStatus(false);
+renderKidBar();
+subscribeKid();
+
+// 네트워크 상태
+window.addEventListener('online', () => setStatus(true));
+window.addEventListener('offline', () => setStatus(false));
+</script>
+</body>
+</html>
