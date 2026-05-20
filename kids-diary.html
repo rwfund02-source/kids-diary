@@ -237,12 +237,13 @@ const firebaseConfig = {
   appId: "1:317489669655:web:13613cec58ffe3f0b19e52"
 };
 firebase.initializeApp(firebaseConfig);
-// 별도 데이터베이스 'kids-diary' 사용 (기존 (default) 데이터베이스와 분리)
-const db = firebase.app().firestore('kids-diary');
+// (default) 데이터베이스의 'kids-diary' 컬렉션 사용
+// (기존 체크리스트는 'checklists' 컬렉션을 쓰므로 서로 간섭 없음)
+const db = firebase.firestore();
 
 // ===== 상태 =====
-let kids = ['첫째', '둘째'];       // 아이 목록
-let currentKid = '첫째';            // 현재 선택된 아이
+let kids = ['우호', '은호', '인호', '승준'];   // 아이 목록 (기본값, Firestore에서 덮어씀)
+let currentKid = '우호';            // 현재 선택된 아이
 let tasks = ['양치', '숙제', '책읽기']; // 매일 할 일 목록
 let entries = {};                   // { 'YYYY-MM-DD': { taskName: 'memo' } }
 let currentView = 'month';
@@ -453,33 +454,44 @@ async function subscribeKid() {
   });
 
   // 2) 현재 아이 데이터 동기화
+  console.log('[subscribeKid] 구독 시작:', currentKid);
   unsubscribe = db.collection(META_DOC).doc(currentKid).onSnapshot(snap => {
     setStatus(true);
     if (snap.exists) {
       const data = snap.data();
       tasks = Array.isArray(data.tasks) ? data.tasks : [];
       entries = data.entries || {};
+      console.log('[subscribeKid] ✓ 데이터 로드:', currentKid, '/ tasks:', tasks.length, '개 / entries:', Object.keys(entries).length, '일');
     } else {
+      // 문서가 아직 없음 - 빈 상태로 시작하되 자동 저장하지 않음
+      // (사용자가 실제로 항목 추가/메모 입력할 때 저장됨)
       tasks = [];
       entries = {};
-      saveKidData(); // 최초 생성
+      console.log('[subscribeKid] 문서 없음 (신규 아이):', currentKid);
     }
     renderTaskChips();
     renderCalendar();
     renderDayView();
   }, err => {
-    console.error(err);
+    console.error('[subscribeKid] 구독 오류:', err);
     setStatus(false);
   });
 }
 
 async function saveKidData() {
+  if (!currentKid) {
+    console.warn('[saveKidData] currentKid가 비어있습니다. 저장 중단.');
+    return;
+  }
   try {
+    console.log('[saveKidData] 저장 시도:', currentKid, '/ tasks:', tasks.length, '개');
     await db.collection(META_DOC).doc(currentKid).set({ tasks, entries }, { merge: true });
+    console.log('[saveKidData] ✓ 저장 성공:', currentKid);
     setStatus(true);
   } catch (e) {
-    console.error(e);
+    console.error('[saveKidData] ✗ 저장 실패:', e.code, e.message);
     setStatus(false);
+    alert(`저장 실패: ${e.message}\n\n새로고침 후 다시 시도해주세요.`);
   }
 }
 
