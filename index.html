@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="우리 아이 일기">
-<title>우리 아이 일과 일기</title>
+<meta name="apple-mobile-web-app-title" content="BOYS">
+<title>BOYS</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -34,11 +34,33 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system,'He
 .app { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
 
 .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.header h1 { font-size: 11px; font-weight: 500; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 .header-right { display: flex; align-items: center; gap: 6px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-hint); transition: background 0.3s; }
 .status-dot.online { background: #2e7d52; }
 .status-text { font-size: 12px; color: var(--text-muted); }
+
+/* 메인 기능 메뉴 */
+.main-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.main-menu-btn { 
+  padding: 16px 8px; 
+  border: 1px solid var(--border-md); 
+  background: var(--surface); 
+  color: var(--text); 
+  border-radius: var(--radius); 
+  cursor: pointer; 
+  font-size: 14px; 
+  font-weight: 600; 
+  transition: all 0.15s; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 6px; 
+}
+.main-menu-btn:hover { background: var(--bg); transform: translateY(-1px); }
+.main-menu-btn.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.main-menu-btn .icon { font-size: 24px; }
+.main-menu-btn .label { font-size: 13px; }
 
 /* 아이 선택 바 */
 .kid-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -163,13 +185,243 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system,'He
 @media (hover: none) {
   .cell-tooltip { display: none; }
 }
+
+/* ====== 잘했어요 모듈 (참잘했어요/잘했어요 카운트 + 메모) ====== */
+.praise-summary { 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius); 
+  padding: 16px 14px; 
+  margin-bottom: 16px; 
+}
+.praise-summary-row { 
+  display: flex; 
+  justify-content: space-around; 
+  align-items: center; 
+  gap: 8px; 
+}
+.praise-summary .stat { text-align: center; flex: 1; }
+.praise-summary .stat .stat-label { 
+  font-size: 11px; 
+  color: var(--text-muted); 
+  margin-bottom: 4px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 4px; 
+}
+.praise-summary .stat .stat-count { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.praise-summary .stat .stat-count.gold { color: #d4751f; }
+.praise-summary .stat .stat-count.silver { color: #6a8caf; }
+.praise-summary .stat-divider { width: 1px; height: 50px; background: var(--border); }
+@media (prefers-color-scheme: dark) {
+  .praise-summary .stat .stat-count.gold { color: #e89548; }
+  .praise-summary .stat .stat-count.silver { color: #8aa6c4; }
+}
+.praise-redeem-btn { 
+  display: block; 
+  width: 100%; 
+  margin-top: 14px; 
+  padding: 10px; 
+  border: 1px solid var(--border-md); 
+  background: var(--bg); 
+  color: var(--text); 
+  border-radius: var(--radius-sm); 
+  cursor: pointer; 
+  font-size: 13px; 
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.praise-redeem-btn:hover { background: #fff5e6; border-color: #d4751f; color: #d4751f; }
+.praise-redeem-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (prefers-color-scheme: dark) {
+  .praise-redeem-btn:hover { background: #2a1f10; color: #e89548; }
+}
+
+.praise-add-bar { margin-bottom: 16px; }
+.praise-add-btn { 
+  width: 100%; 
+  padding: 12px; 
+  border: 1px dashed var(--border-md); 
+  background: var(--surface); 
+  color: var(--text-muted); 
+  border-radius: var(--radius); 
+  cursor: pointer; 
+  font-size: 14px; 
+  font-weight: 500; 
+  transition: all 0.15s; 
+}
+.praise-add-btn:hover { background: var(--bg); border-style: solid; color: var(--text); }
+
+.praise-day-card { 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius); 
+  padding: 14px; 
+  margin-bottom: 10px; 
+  position: relative;
+}
+.praise-day-card.today { border-color: var(--today-border); background: var(--today-bg); }
+.praise-day-header { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 12px; 
+}
+.praise-day-date { font-size: 14px; font-weight: 600; }
+.praise-day-date.sun { color: var(--weekend); }
+.praise-day-date.sat { color: var(--weekend); }
+.praise-day-delete { 
+  border: none; 
+  background: none; 
+  color: var(--text-hint); 
+  cursor: pointer; 
+  font-size: 16px; 
+  padding: 2px 8px; 
+  border-radius: 4px;
+}
+.praise-day-delete:hover { color: var(--weekend); background: var(--bg); }
+
+.praise-counters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.praise-counter { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 8px; 
+  padding: 10px 6px; 
+  background: var(--bg); 
+  border-radius: var(--radius-sm); 
+}
+.praise-counter .counter-label { 
+  font-size: 12px; 
+  color: var(--text-muted); 
+  display: flex; 
+  align-items: center; 
+  gap: 4px;
+}
+.praise-counter .counter-controls { display: flex; align-items: center; gap: 8px; }
+.praise-counter .counter-btn { 
+  width: 32px; height: 32px; 
+  border-radius: 50%; 
+  border: 1px solid var(--border-md); 
+  background: var(--surface); 
+  color: var(--text); 
+  font-size: 18px; font-weight: 600; 
+  cursor: pointer; 
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.praise-counter .counter-btn:hover { background: var(--bg); }
+.praise-counter .counter-btn:active { transform: scale(0.92); }
+.praise-counter .counter-input { 
+  width: 56px; 
+  text-align: center; 
+  font-size: 22px; font-weight: 700; 
+  border: none; background: transparent; 
+  color: var(--text); 
+  padding: 4px; 
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+}
+.praise-counter .counter-input:focus { outline: none; border-bottom-color: var(--accent); }
+.praise-counter .counter-input.gold { color: #d4751f; }
+.praise-counter .counter-input.silver { color: #6a8caf; }
+@media (prefers-color-scheme: dark) {
+  .praise-counter .counter-input.gold { color: #e89548; }
+  .praise-counter .counter-input.silver { color: #8aa6c4; }
+}
+.praise-counter .counter-input::-webkit-outer-spin-button,
+.praise-counter .counter-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.praise-memo-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 36px;
+}
+.praise-memo-input:focus { outline: none; border-color: var(--accent); }
+.praise-day-card.today .praise-counter { background: var(--surface); }
+.praise-day-card.today .praise-memo-input { background: var(--surface); }
+
+/* 교환 이력 섹션 */
+.praise-history-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px;
+  margin-top: 12px;
+  width: 100%;
+  text-align: center;
+}
+.praise-history-toggle:hover { color: var(--text); }
+.praise-history-list { 
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.praise-history-item { padding: 4px 0; }
+.praise-history-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+
+/* ====== 현금잔금 모듈 ====== */
+.cash-summary { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; text-align: center; }
+.cash-summary .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.cash-summary .amount { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.cash-summary .amount.positive { color: #2e7d52; }
+.cash-summary .amount.negative { color: var(--weekend); }
+@media (prefers-color-scheme: dark) {
+  .cash-summary .amount.positive { color: #5dc88a; }
+}
+
+.cash-input-area { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+.cash-type-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 10px; }
+.cash-type-tab { flex: 1; padding: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 13px; border-radius: 6px; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+.cash-type-tab.active.income { background: #2e7d52; color: white; }
+.cash-type-tab.active.expense { background: var(--weekend); color: white; }
+.cash-form { display: flex; flex-direction: column; gap: 8px; }
+.cash-form .row { display: flex; gap: 6px; }
+.cash-form input[type="number"], .cash-form input[type="text"] { 
+  padding: 9px 10px; 
+  border: 1px solid var(--border-md); 
+  border-radius: var(--radius-sm); 
+  background: var(--bg); 
+  color: var(--text); 
+  font-size: 14px; 
+  font-family: inherit;
+}
+.cash-form input[type="number"] { flex: 0 0 130px; text-align: right; }
+.cash-form input[type="text"] { flex: 1; }
+.cash-form button { padding: 9px 16px; border: none; background: var(--accent); color: var(--accent-fg); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; }
+
+.cash-list { display: flex; flex-direction: column; gap: 6px; }
+.cash-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.cash-item .cash-date { font-size: 11px; color: var(--text-muted); flex: 0 0 60px; }
+.cash-item .cash-memo { flex: 1; font-size: 14px; word-break: break-word; }
+.cash-item .cash-amount { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.cash-item .cash-amount.income { color: #2e7d52; }
+.cash-item .cash-amount.expense { color: var(--weekend); }
+@media (prefers-color-scheme: dark) {
+  .cash-item .cash-amount.income { color: #5dc88a; }
+}
+.cash-item .cash-delete { border: none; background: none; color: var(--text-hint); cursor: pointer; font-size: 14px; padding: 2px 4px; }
+.cash-item .cash-delete:hover { color: var(--weekend); }
 </style>
 </head>
 <body>
 <div class="app">
 
   <div class="header">
-    <h1>📔 우리 아이 일기</h1>
+    <h1>BOYS</h1>
     <div class="header-right">
       <span class="status-dot" id="status-dot"></span>
       <span class="status-text" id="status-text">연결 중...</span>
@@ -179,47 +431,116 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system,'He
   <!-- 아이 선택 -->
   <div class="kid-bar" id="kid-bar"></div>
 
-  <!-- 뷰 전환 -->
-  <div class="view-tabs">
-    <button class="view-tab active" id="tab-month" onclick="switchView('month')">📅 월간</button>
-    <button class="view-tab" id="tab-day" onclick="switchView('day')">📝 오늘</button>
+  <!-- 메인 기능 메뉴 -->
+  <div class="main-menu">
+    <button class="main-menu-btn active" id="menu-study" onclick="switchModule('study')">
+      <span class="icon">📚</span><span class="label">공부DB</span>
+    </button>
+    <button class="main-menu-btn" id="menu-praise" onclick="switchModule('praise')">
+      <span class="icon">⭐</span><span class="label">잘했어요</span>
+    </button>
+    <button class="main-menu-btn" id="menu-cash" onclick="switchModule('cash')">
+      <span class="icon">💰</span><span class="label">현금잔금</span>
+    </button>
   </div>
 
-  <!-- 월간 뷰 -->
-  <div id="month-view">
-    <div class="month-nav">
-      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
-      <h2 id="month-title"></h2>
-      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+  <!-- ============ 모듈 1: 공부DB (기존 일기) ============ -->
+  <div id="module-study">
+
+    <!-- 뷰 전환 -->
+    <div class="view-tabs">
+      <button class="view-tab active" id="tab-month" onclick="switchView('month')">📅 월간</button>
+      <button class="view-tab" id="tab-day" onclick="switchView('day')">📝 오늘</button>
     </div>
-    <div class="calendar" id="calendar"></div>
+
+    <!-- 월간 뷰 -->
+    <div id="month-view">
+      <div class="month-nav">
+        <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+        <h2 id="month-title"></h2>
+        <button class="nav-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+
+    <!-- 일간 뷰 -->
+    <div id="day-view" style="display:none;">
+      <div class="day-header">
+        <div>
+          <div class="day-title" id="day-title"></div>
+          <div class="day-sub" id="day-sub"></div>
+        </div>
+        <div>
+          <button class="nav-btn" onclick="changeDay(-1)">‹</button>
+          <button class="nav-btn" onclick="changeDay(1)">›</button>
+        </div>
+      </div>
+
+      <button class="toggle-manage" onclick="toggleManage()" id="toggle-manage-btn">⚙️ 매일 할 일 관리</button>
+
+      <div class="tasks-manage" id="tasks-manage" style="display:none;">
+        <h3>매일 반복하는 일 목록</h3>
+        <div class="task-input-row">
+          <input type="text" id="new-task-input" placeholder="예: 양치, 숙제, 책읽기..." onkeydown="if(event.key==='Enter')addTask()">
+          <button onclick="addTask()">추가</button>
+        </div>
+        <div class="task-chips" id="task-chips"></div>
+      </div>
+
+      <div class="task-list" id="task-list"></div>
+    </div>
+
   </div>
 
-  <!-- 일간 뷰 -->
-  <div id="day-view" style="display:none;">
-    <div class="day-header">
-      <div>
-        <div class="day-title" id="day-title"></div>
-        <div class="day-sub" id="day-sub"></div>
+  <!-- ============ 모듈 2: 잘했어요 ============ -->
+  <div id="module-praise" style="display:none;">
+    <div class="praise-summary">
+      <div class="praise-summary-row">
+        <div class="stat">
+          <div class="stat-label">🏆 참잘했어요</div>
+          <div class="stat-count gold" id="total-gold">0</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-label">⭐ 잘했어요</div>
+          <div class="stat-count silver" id="total-silver">0</div>
+        </div>
       </div>
-      <div>
-        <button class="nav-btn" onclick="changeDay(-1)">‹</button>
-        <button class="nav-btn" onclick="changeDay(1)">›</button>
+      <button class="praise-redeem-btn" id="redeem-btn" onclick="redeemPraise()">🎁 선물 교환 (모두 0으로 리셋)</button>
+    </div>
+
+    <div class="praise-add-bar">
+      <button class="praise-add-btn" onclick="addPraiseToday()">+ 오늘 기록 추가</button>
+    </div>
+
+    <div id="praise-day-list"></div>
+
+    <button class="praise-history-toggle" onclick="togglePraiseHistory()" id="praise-history-toggle-btn">📜 교환 이력 보기</button>
+    <div class="praise-history-list" id="praise-history-list" style="display:none;"></div>
+  </div>
+
+  <!-- ============ 모듈 3: 현금잔금 ============ -->
+  <div id="module-cash" style="display:none;">
+    <div class="cash-summary">
+      <div class="label">현재 잔액</div>
+      <div class="amount" id="cash-balance">0 원</div>
+    </div>
+
+    <div class="cash-input-area">
+      <div class="cash-type-tabs">
+        <button class="cash-type-tab active income" id="cash-tab-income" onclick="setCashType('income')">+ 입금</button>
+        <button class="cash-type-tab" id="cash-tab-expense" onclick="setCashType('expense')">− 출금</button>
+      </div>
+      <div class="cash-form">
+        <div class="row">
+          <input type="number" id="cash-amount-input" placeholder="금액" inputmode="numeric">
+          <input type="text" id="cash-memo-input" placeholder="용도/메모 (예: 용돈, 간식, 책 구입)" onkeydown="if(event.key==='Enter')addCashEntry()">
+          <button onclick="addCashEntry()">추가</button>
+        </div>
       </div>
     </div>
 
-    <button class="toggle-manage" onclick="toggleManage()" id="toggle-manage-btn">⚙️ 매일 할 일 관리</button>
-
-    <div class="tasks-manage" id="tasks-manage" style="display:none;">
-      <h3>매일 반복하는 일 목록</h3>
-      <div class="task-input-row">
-        <input type="text" id="new-task-input" placeholder="예: 양치, 숙제, 책읽기..." onkeydown="if(event.key==='Enter')addTask()">
-        <button onclick="addTask()">추가</button>
-      </div>
-      <div class="task-chips" id="task-chips"></div>
-    </div>
-
-    <div class="task-list" id="task-list"></div>
+    <div class="cash-list" id="cash-list"></div>
   </div>
 
 </div>
@@ -244,8 +565,14 @@ const db = firebase.firestore();
 // ===== 상태 =====
 let kids = ['우호', '은호', '인호', '승준'];   // 아이 목록 (기본값, Firestore에서 덮어씀)
 let currentKid = '우호';            // 현재 선택된 아이
-let tasks = ['양치', '숙제', '책읽기']; // 매일 할 일 목록
-let entries = {};                   // { 'YYYY-MM-DD': { taskName: 'memo' } }
+let currentModule = 'study';        // 현재 활성 모듈: study | praise | cash
+let tasks = ['양치', '숙제', '책읽기']; // 공부DB: 매일 할 일 목록
+let entries = {};                   // 공부DB: { 'YYYY-MM-DD': { taskName: 'memo' } }
+let praises = [];                   // 잘했어요: [{id, date, gold, silver, memo, createdAt}]
+let praiseHistory = [];             // 잘했어요 교환 이력: [{id, date, gold, silver, createdAt}]
+let cashEntries = [];               // 현금잔금: [{id, date, type:'income'|'expense', amount, memo, createdAt}]
+let cashType = 'income';            // 현금잔금: 현재 선택된 입력 타입
+let showPraiseHistory = false;      // 교환 이력 표시 여부
 let currentView = 'month';
 let currentMonth = new Date();      // 보고 있는 월
 let currentDay = new Date();        // 보고 있는 일
@@ -461,17 +788,29 @@ async function subscribeKid() {
       const data = snap.data();
       tasks = Array.isArray(data.tasks) ? data.tasks : [];
       entries = data.entries || {};
-      console.log('[subscribeKid] ✓ 데이터 로드:', currentKid, '/ tasks:', tasks.length, '개 / entries:', Object.keys(entries).length, '일');
+      praises = Array.isArray(data.praises) ? data.praises : [];
+      praiseHistory = Array.isArray(data.praiseHistory) ? data.praiseHistory : [];
+      cashEntries = Array.isArray(data.cashEntries) ? data.cashEntries : [];
+      console.log('[subscribeKid] ✓ 로드:', currentKid, 
+        '/ tasks:', tasks.length, 
+        '/ entries:', Object.keys(entries).length, 
+        '/ praises:', praises.length, 
+        '/ history:', praiseHistory.length,
+        '/ cash:', cashEntries.length);
     } else {
       // 문서가 아직 없음 - 빈 상태로 시작하되 자동 저장하지 않음
-      // (사용자가 실제로 항목 추가/메모 입력할 때 저장됨)
       tasks = [];
       entries = {};
+      praises = [];
+      praiseHistory = [];
+      cashEntries = [];
       console.log('[subscribeKid] 문서 없음 (신규 아이):', currentKid);
     }
     renderTaskChips();
     renderCalendar();
     renderDayView();
+    renderPraiseList();
+    renderCashView();
   }, err => {
     console.error('[subscribeKid] 구독 오류:', err);
     setStatus(false);
@@ -484,8 +823,13 @@ async function saveKidData() {
     return;
   }
   try {
-    console.log('[saveKidData] 저장 시도:', currentKid, '/ tasks:', tasks.length, '개');
-    await db.collection(META_DOC).doc(currentKid).set({ tasks, entries }, { merge: true });
+    console.log('[saveKidData] 저장 시도:', currentKid, 
+      '/ tasks:', tasks.length, 
+      '/ praises:', praises.length, 
+      '/ cash:', cashEntries.length);
+    await db.collection(META_DOC).doc(currentKid).set({ 
+      tasks, entries, praises, praiseHistory, cashEntries 
+    }, { merge: true });
     console.log('[saveKidData] ✓ 저장 성공:', currentKid);
     setStatus(true);
   } catch (e) {
@@ -678,6 +1022,316 @@ function onMemoInput(taskName, value, dateKey) {
     else card.classList.remove('filled');
   }
   onMemoChange(taskName, value, dateKey);
+}
+
+// ===== 모듈 전환 =====
+function switchModule(name) {
+  currentModule = name;
+  // 메뉴 버튼 활성화
+  document.getElementById('menu-study').classList.toggle('active', name==='study');
+  document.getElementById('menu-praise').classList.toggle('active', name==='praise');
+  document.getElementById('menu-cash').classList.toggle('active', name==='cash');
+  // 모듈 화면 표시
+  document.getElementById('module-study').style.display = name==='study' ? 'block' : 'none';
+  document.getElementById('module-praise').style.display = name==='praise' ? 'block' : 'none';
+  document.getElementById('module-cash').style.display = name==='cash' ? 'block' : 'none';
+  // 모듈별 렌더링 갱신
+  if (name === 'study') {
+    if (currentView === 'month') renderCalendar(); else renderDayView();
+  } else if (name === 'praise') {
+    renderPraiseList();
+  } else if (name === 'cash') {
+    renderCashView();
+  }
+}
+
+// ===== 잘했어요 모듈 (카운트형) =====
+
+// 오늘 날짜 카드 추가
+function addPraiseToday() {
+  const today = fmtDate(new Date());
+  // 이미 오늘 카드가 있으면 추가 안 함
+  if (praises.find(p => p.date === today)) {
+    alert('오늘 날짜는 이미 있어요. 위에서 +/- 버튼으로 조정하세요.');
+    return;
+  }
+  praises.unshift({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    date: today,
+    gold: 0,
+    silver: 0,
+    memo: '',
+    createdAt: new Date().toISOString()
+  });
+  saveKidData();
+  renderPraiseList();
+}
+
+// 카운터 +/- 조정
+function adjustPraiseCount(id, field, delta) {
+  const item = praises.find(p => p.id === id);
+  if (!item) return;
+  item[field] = Math.max(0, (item[field] || 0) + delta);
+  saveKidData();
+  renderPraiseList();
+}
+
+// 카운터 직접 입력
+function setPraiseCount(id, field, value) {
+  const item = praises.find(p => p.id === id);
+  if (!item) return;
+  const n = parseInt(value, 10);
+  item[field] = isNaN(n) || n < 0 ? 0 : n;
+  saveKidData();
+  // 직접 입력 중에는 재렌더링 안 함 (포커스 유지) - 상단 합계만 갱신
+  updatePraiseTotals();
+}
+
+// 메모 입력 (디바운스)
+let praiseMemoTimers = {};
+function updatePraiseMemo(id, value) {
+  const item = praises.find(p => p.id === id);
+  if (!item) return;
+  item.memo = value;
+  if (praiseMemoTimers[id]) clearTimeout(praiseMemoTimers[id]);
+  praiseMemoTimers[id] = setTimeout(() => saveKidData(), 700);
+}
+
+// 날짜 카드 삭제
+function deletePraiseDay(id) {
+  const item = praises.find(p => p.id === id);
+  if (!item) return;
+  if (!confirm(`${formatPraiseDate(item.date)} 기록을 삭제할까요?`)) return;
+  praises = praises.filter(p => p.id !== id);
+  saveKidData();
+  renderPraiseList();
+}
+
+// 선물 교환 (리셋)
+function redeemPraise() {
+  const totalGold = praises.reduce((s, p) => s + (p.gold || 0), 0);
+  const totalSilver = praises.reduce((s, p) => s + (p.silver || 0), 0);
+  if (totalGold === 0 && totalSilver === 0) {
+    alert('교환할 포인트가 없어요.');
+    return;
+  }
+  if (!confirm(`현재 모은 포인트:\n🏆 참잘했어요 ${totalGold}개\n⭐ 잘했어요 ${totalSilver}개\n\n선물로 교환하고 모두 0으로 리셋할까요?`)) return;
+  
+  // 교환 이력에 추가
+  praiseHistory.unshift({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    date: fmtDate(new Date()),
+    gold: totalGold,
+    silver: totalSilver,
+    createdAt: new Date().toISOString()
+  });
+  // 모든 일일 기록 삭제
+  praises = [];
+  saveKidData();
+  renderPraiseList();
+  alert('🎁 교환 완료! 새로 시작해보세요.');
+}
+
+// 교환 이력 토글
+function togglePraiseHistory() {
+  showPraiseHistory = !showPraiseHistory;
+  const list = document.getElementById('praise-history-list');
+  const btn = document.getElementById('praise-history-toggle-btn');
+  if (showPraiseHistory) {
+    list.style.display = 'block';
+    btn.textContent = '📜 교환 이력 숨기기';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = '📜 교환 이력 보기';
+  }
+  renderPraiseHistory();
+}
+
+// 날짜 포맷 (5월 20일 (수))
+function formatPraiseDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' });
+}
+
+// 합계만 빠르게 갱신 (입력 중 포커스 유지용)
+function updatePraiseTotals() {
+  const totalGold = praises.reduce((s, p) => s + (p.gold || 0), 0);
+  const totalSilver = praises.reduce((s, p) => s + (p.silver || 0), 0);
+  const gEl = document.getElementById('total-gold');
+  const sEl = document.getElementById('total-silver');
+  if (gEl) gEl.textContent = totalGold;
+  if (sEl) sEl.textContent = totalSilver;
+}
+
+// 전체 리스트 렌더링
+function renderPraiseList() {
+  // 상단 합계
+  updatePraiseTotals();
+  
+  // 일일 카드 리스트
+  const wrap = document.getElementById('praise-day-list');
+  if (!wrap) return;
+  
+  if (praises.length === 0) {
+    wrap.innerHTML = '<div class="empty-hint">아직 기록이 없어요.<br>위 [+ 오늘 기록 추가] 버튼을 눌러보세요!</div>';
+    renderPraiseHistory();
+    return;
+  }
+  
+  // 날짜 내림차순 정렬 (최신이 위)
+  const sorted = [...praises].sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  const todayStr = fmtDate(new Date());
+  
+  wrap.innerHTML = sorted.map(p => {
+    const dateObj = new Date(p.date);
+    const dow = dateObj.getDay();
+    const dateLabel = formatPraiseDate(p.date);
+    const isToday = p.date === todayStr;
+    const dowClass = dow === 0 ? ' sun' : (dow === 6 ? ' sat' : '');
+    const cardClass = isToday ? ' today' : '';
+    const todayMark = isToday ? ' <span style="font-size:11px;color:var(--text-muted);">· 오늘</span>' : '';
+    
+    return `
+      <div class="praise-day-card${cardClass}">
+        <div class="praise-day-header">
+          <div class="praise-day-date${dowClass}">📅 ${escapeHtml(dateLabel)}${todayMark}</div>
+          <button class="praise-day-delete" onclick="deletePraiseDay('${p.id}')" title="삭제">×</button>
+        </div>
+        <div class="praise-counters">
+          <div class="praise-counter">
+            <div class="counter-label">🏆 참잘했어요</div>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="adjustPraiseCount('${p.id}','gold',-1)">−</button>
+              <input type="number" class="counter-input gold" 
+                value="${p.gold || 0}" 
+                min="0"
+                onchange="setPraiseCount('${p.id}','gold',this.value)"
+                onfocus="this.select()">
+              <button class="counter-btn" onclick="adjustPraiseCount('${p.id}','gold',1)">+</button>
+            </div>
+          </div>
+          <div class="praise-counter">
+            <div class="counter-label">⭐ 잘했어요</div>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="adjustPraiseCount('${p.id}','silver',-1)">−</button>
+              <input type="number" class="counter-input silver" 
+                value="${p.silver || 0}" 
+                min="0"
+                onchange="setPraiseCount('${p.id}','silver',this.value)"
+                onfocus="this.select()">
+              <button class="counter-btn" onclick="adjustPraiseCount('${p.id}','silver',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <textarea class="praise-memo-input" 
+          placeholder="메모 (예: 수학 시험 잘 봄, 동생에게 양보)"
+          oninput="updatePraiseMemo('${p.id}', this.value)">${escapeHtml(p.memo || '')}</textarea>
+      </div>
+    `;
+  }).join('');
+  
+  renderPraiseHistory();
+}
+
+// 교환 이력 렌더링
+function renderPraiseHistory() {
+  const wrap = document.getElementById('praise-history-list');
+  if (!wrap) return;
+  
+  if (praiseHistory.length === 0) {
+    wrap.innerHTML = '<div style="color:var(--text-hint); text-align:center;">아직 선물 교환 이력이 없어요.</div>';
+    return;
+  }
+  
+  wrap.innerHTML = praiseHistory.map(h => {
+    const dateLabel = formatPraiseDate(h.date);
+    return `<div class="praise-history-item">📅 ${escapeHtml(dateLabel)} — 🏆 ${h.gold}개, ⭐ ${h.silver}개 교환</div>`;
+  }).join('');
+}
+
+// ===== 현금잔금 모듈 =====
+function setCashType(type) {
+  cashType = type;
+  document.getElementById('cash-tab-income').classList.toggle('active', type==='income');
+  document.getElementById('cash-tab-expense').classList.toggle('active', type==='expense');
+}
+
+function addCashEntry() {
+  const amountInp = document.getElementById('cash-amount-input');
+  const memoInp = document.getElementById('cash-memo-input');
+  const amount = parseInt(amountInp.value, 10);
+  const memo = memoInp.value.trim();
+  
+  if (!amount || amount <= 0) {
+    alert('금액을 입력해주세요. (양수)');
+    return;
+  }
+  if (!memo) {
+    alert('용도/메모를 입력해주세요.');
+    return;
+  }
+  
+  const now = new Date();
+  cashEntries.unshift({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    date: fmtDate(now),
+    type: cashType,
+    amount: amount,
+    memo: memo,
+    createdAt: now.toISOString()
+  });
+  amountInp.value = '';
+  memoInp.value = '';
+  saveKidData();
+  renderCashView();
+}
+
+function deleteCashEntry(id) {
+  if (!confirm('이 내역을 삭제할까요?')) return;
+  cashEntries = cashEntries.filter(e => e.id !== id);
+  saveKidData();
+  renderCashView();
+}
+
+function calculateBalance() {
+  return cashEntries.reduce((sum, e) => {
+    return sum + (e.type === 'income' ? e.amount : -e.amount);
+  }, 0);
+}
+
+function formatCurrency(n) {
+  return n.toLocaleString('ko-KR') + ' 원';
+}
+
+function renderCashView() {
+  // 잔액
+  const balanceEl = document.getElementById('cash-balance');
+  if (!balanceEl) return;
+  const balance = calculateBalance();
+  balanceEl.textContent = formatCurrency(balance);
+  balanceEl.className = 'amount' + (balance > 0 ? ' positive' : (balance < 0 ? ' negative' : ''));
+  
+  // 내역 리스트
+  const wrap = document.getElementById('cash-list');
+  if (cashEntries.length === 0) {
+    wrap.innerHTML = '<div class="empty-hint">아직 입출금 내역이 없어요.<br>위에서 추가해보세요 💰</div>';
+    return;
+  }
+  // 최신순 정렬
+  const sorted = [...cashEntries].sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  wrap.innerHTML = sorted.map(e => {
+    const dateObj = new Date(e.createdAt || e.date);
+    const dateLabel = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+    const sign = e.type === 'income' ? '+' : '−';
+    return `
+      <div class="cash-item">
+        <div class="cash-date">${dateLabel}</div>
+        <div class="cash-memo">${escapeHtml(e.memo)}</div>
+        <div class="cash-amount ${e.type}">${sign} ${formatCurrency(e.amount)}</div>
+        <button class="cash-delete" onclick="deleteCashEntry('${e.id}')" title="삭제">×</button>
+      </div>
+    `;
+  }).join('');
 }
 
 // ===== 초기화 =====
